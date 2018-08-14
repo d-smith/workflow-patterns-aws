@@ -1,0 +1,15 @@
+{
+  "name": "p4-exclusive-choice",
+  "version": "1.0.0",
+  "description": "The [exclusive choice](http://www.workflowpatterns.com/patterns/control/basic/wcp4.php) pattern",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serverless-pseudo-parameters": "^2.1.0",
+    "serverless-step-functions": "^1.6.1"
+  }
+}

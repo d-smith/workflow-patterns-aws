@@ -63,7 +63,6 @@ stepFunctions:
                   step-2b:
                     Type: Task
                     Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step2b"
-#                    ResultPath: '$.step2.b'
                     ResultPath: '$.2b'
                     End: true
               - StartAt: step-3

@@ -1,0 +1,124 @@
+service: p5-simple-merge
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - p5-merge-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+functions:
+  step1:
+    handler: p5.step1
+
+  fooStep:
+    handler: p5.fooStep
+  barStep:
+    handler: p5.barStep
+  bazStep:
+    handler: p5.bazStep
+  foo2:
+    handler: p5.fooStep
+  bar2:
+    handler: p5.barStep
+  baz2:
+    handler: p5.bazStep
+
+  quuxStep:
+    handler: p5.quuxStep
+  lastStep:
+    handler: p5.quuxStep
+
+
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: p5-simple-merge-${opt:stage}
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
+      definition:
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+            ResultPath: '$.step1'
+            Next: choiceStep
+          choiceStep:
+            Type: Choice
+            Choices:
+              - Variable: '$.metavar'
+                StringEquals: 'foo'
+                Next: fooStep
+              - Variable: '$.metavar'
+                StringEquals: 'bar'
+                Next: barStep
+            Default: bazStep 
+          fooStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-fooStep"
+            ResultPath: '$.foo'
+            Next: foo2
+          foo2:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-foo2"
+            ResultPath: '$.foo2'
+            Next: quuxStep
+
+          barStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-barStep"
+            ResultPath: '$.bar'
+            Next: bar2
+          bar2:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bar2"
+            ResultPath: '$.bar2'
+            Next: quuxStep
+
+          bazStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bazStep"
+            ResultPath: '$.baz'
+            Next: baz2
+          baz2:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-baz2"
+            ResultPath: '$.baz2'
+            Next: quuxStep
+
+          quuxStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-quuxStep"
+            ResultPath: '$.quux'
+            Next: lastStep
+
+          lastStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-lastStep"
+            ResultPath: '$.lastStep'
+            End: true
+
+
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

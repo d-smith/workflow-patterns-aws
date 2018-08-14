@@ -1,0 +1,86 @@
+service: p3-sync
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - p3-sync-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+functions:
+  step1:
+    handler: p3.step1
+
+  step2a:
+    handler: p3.step2a
+
+  step2b:
+    handler: p3.step2b
+
+
+  step3:
+    handler: p3.step3
+
+  step4:
+    handler: p3.step4
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: p3-parasplit-${opt:stage}
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
+      definition:
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+            ResultPath: '$.step1'
+            Next: splitStep
+          splitStep:
+            Type: Parallel
+            Next: step-4
+            ResultPath: '$.splitStep'
+            Branches:
+              - StartAt: step-2a
+                States:
+                  step-2a:
+                    Type: Task
+                    Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step2a"
+                    ResultPath: '$.step2.2a'
+                    OutputPath: '$.step2'
+                    Next: step-2b
+                  step-2b:
+                    Type: Task
+                    Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step2b"
+#                    ResultPath: '$.step2.b'
+                    ResultPath: '$.2b'
+                    End: true
+              - StartAt: step-3
+                States:
+                  step-3:
+                    Type: Task
+                    Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step3"
+                    ResultPath: '$.step3.s3'
+                    OutputPath: '$.step3'
+                    End: true
+          step-4:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step4"
+            ResultPath: '$.step4'
+            OutputPath: '$'
+            End: true
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

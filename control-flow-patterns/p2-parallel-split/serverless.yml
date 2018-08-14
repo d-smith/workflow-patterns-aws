@@ -1,0 +1,61 @@
+service: p2-parallel-split
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - p2-psplit-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+functions:
+  step1:
+    handler: p2.step1
+
+  step2:
+    handler: p2.step2
+
+  step3:
+    handler: p2.step3
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: p2-parasplit-${opt:stage}
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
+      definition:
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+            Next: splitStep
+          splitStep:
+            Type: Parallel
+            End: true
+            Branches:
+              - StartAt: step-2
+                States:
+                  step-2:
+                    Type: Task
+                    Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step2"
+                    End: true
+              - StartAt: step-3
+                States:
+                  step-3:
+                    Type: Task
+                    Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step3"
+                    End: true
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

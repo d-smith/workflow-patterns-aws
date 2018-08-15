@@ -1,0 +1,63 @@
+service: reoffer
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - reoffer-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+functions:
+  step1:
+    handler: reoffer.step1
+
+  step2:
+    handler: reoffer.step2
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: reoffer-${opt:stage}
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
+      definition:
+
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+            Next: manual
+            ResultPath: '$.step1'
+
+          manual:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:manual-${self:service}-${opt:stage}
+            Next: step-2
+            ResultPath: '$.manual'
+            Retry:
+              - ErrorEquals:
+                  - Reoffer.Fail
+                MaxAttempts: 10
+                BackoffRate: 1.0
+                
+          step-2:
+            Type: Task
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step2"
+            End: true
+            ResultPath: '$.step2'
+  activities:
+    - manual-${self:service}-${opt:stage}
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

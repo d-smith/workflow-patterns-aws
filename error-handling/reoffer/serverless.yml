@@ -47,7 +47,7 @@ stepFunctions:
             Retry:
               - ErrorEquals:
                   - Reoffer.Fail
-                MaxAttempts: 10
+                MaxAttempts: 3
                 BackoffRate: 1.0
                 
           step-2:

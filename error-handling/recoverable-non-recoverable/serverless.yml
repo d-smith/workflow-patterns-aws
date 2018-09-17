@@ -1,0 +1,61 @@
+service: recov
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - recov-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+functions:
+  step1:
+    handler: p1.step1
+
+  step2:
+    handler: p1.step2
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: p1-seq-${opt:stage}
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
+      definition:
+        Comment: "Two steps FTW!"
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+            Next: step-2
+            Retry:
+              - ErrorEquals:
+                  - RecoverableError
+                IntervalSeconds: 1
+                MaxAttempts: 5
+                BackoffRate: 1.25
+          step-2:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step2"
+            End: true
+            Retry:
+              - ErrorEquals:
+                  - RecoverableError
+                IntervalSeconds: 1
+                MaxAttempts: 5
+                BackoffRate: 1.25
+
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

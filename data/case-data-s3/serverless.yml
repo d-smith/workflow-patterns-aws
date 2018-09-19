@@ -1,0 +1,85 @@
+service: s3casedata
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - s3casedata-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+functions:
+  step1:
+    handler: casedata.step1
+  fooStep:
+    handler: casedata.fooStep
+  barStep:
+    handler: casedata.barStep
+  bazStep:
+    handler: casedata.bazStep
+  quuxStep:
+    handler: casedata.quuxStep
+
+
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: s3casedata-${opt:stage}
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
+      definition:
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+            ResultPath: '$.step1'
+            Next: choiceStep
+          choiceStep:
+            Type: Choice
+            Choices:
+              - Variable: '$.metavar'
+                StringEquals: 'foo'
+                Next: fooStep
+              - Variable: '$.metavar'
+                StringEquals: 'bar'
+                Next: barStep
+            Default: bazStep 
+          fooStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-fooStep"
+            ResultPath: '$.foo'
+            Next: quuxStep
+          barStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bazStep"
+            ResultPath: '$.bar'
+            Next: quuxStep
+          bazStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-barStep"
+            ResultPath: '$.baz'
+            Next: quuxStep
+          quuxStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-quuxStep"
+            ResultPath: '$.quuz'
+            End: true
+
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

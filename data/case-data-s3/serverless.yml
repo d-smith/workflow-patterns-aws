@@ -10,9 +10,24 @@ provider:
     throttle:
       burstLimit: 10
       rateLimit: 5
-
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - states:StartExecution
+      Resource: '*'
 
 functions:
+  create:
+    handler: casedata.create
+    environment:
+      STEP_FN_ARN: 'arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}'
+
+    events:
+    - http:
+        path: create
+        method: POST
+        private: true
+   
   step1:
     handler: casedata.step1
   fooStep:
@@ -30,11 +45,6 @@ stepFunctions:
   stateMachines:
     Process1:
       name: s3casedata-${opt:stage}
-      events:
-        - http:
-            path: create
-            method: POST
-            private: true
       definition:
         StartAt: step-1
         States:

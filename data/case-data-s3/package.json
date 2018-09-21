@@ -8,7 +8,10 @@
   },
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "chance": "^1.0.16",
+    "middy": "^0.18.1"
+  },
   "devDependencies": {
     "serverless-pseudo-parameters": "^2.1.0",
     "serverless-step-functions": "^1.6.1"

@@ -10,17 +10,27 @@ provider:
     throttle:
       burstLimit: 10
       rateLimit: 5
+  environment:
+    BUCKET_NAME: 'pdata97068-${self:provider.stage}'
+    STEP_FN_ARN: 'arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}'
   iamRoleStatements:
     - Effect: Allow
       Action:
         - states:StartExecution
       Resource: '*'
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: '*'
+
 
 functions:
   create:
     handler: casedata.create
-    environment:
-      STEP_FN_ARN: 'arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}'
+      
+      
+        
 
     events:
     - http:
@@ -52,7 +62,7 @@ stepFunctions:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
-            ResultPath: '$.step1'
+            ResultPath: '$'
             Next: choiceStep
           choiceStep:
             Type: Choice

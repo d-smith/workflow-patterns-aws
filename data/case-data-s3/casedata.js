@@ -122,20 +122,37 @@ module.exports.step1 = async (event, context, callback) => {
     callback(null, stateMachineData);
 };
 
+const doStep = async (key, stepName, stepOutput, callback) => {
+    console.log(`process data via key ${key}`);
+
+    let processData = await readInputDataJSON(key, (x) => {return true;});
+    console.log(`input: ${JSON.stringify(processData)}`);
+
+    console.log('write step output');
+    processData[stepName] = stepOutput;
+    await writeBodyObj(key, processData);
+
+    let stateMachineData = {};
+    stateMachineData['processData'] = key;
+
+    console.log('callback with state machine data');
+    callback(null, stateMachineData);
+}
+
 module.exports.fooStep = async (event, context, callback) => {
-    callback(null, 'fooStep');
+    await doStep(event['processData'], 'fooStep', 'foo', callback);
 }
 
 module.exports.barStep = async (event, context, callback) => {
-    callback(null, 'barStep');
+    await doStep(event['processData'], 'barStep', 'bar', callback);
 };
 
 module.exports.bazStep = async (event, context, callback) => {
-    callback(null, 'bazStep');
+    await doStep(event['processData'], 'bazStep', 'baz', callback);
 };
 
 module.exports.quuxStep = async (event, context, callback) => {
-    callback(null, 'quuxStep');
+    await doStep(event['processData'], 'quuxStep', 'quux', callback);
 };
 
 module.exports.create = middy(createCore).use(txnid());

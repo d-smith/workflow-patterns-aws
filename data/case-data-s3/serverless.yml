@@ -78,25 +78,25 @@ stepFunctions:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-fooStep"
-            ResultPath: '$.foo'
+            ResultPath: '$'
             Next: quuxStep
           barStep:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bazStep"
-            ResultPath: '$.bar'
+            ResultPath: '$'
             Next: quuxStep
           bazStep:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-barStep"
-            ResultPath: '$.baz'
+            ResultPath: '$'
             Next: quuxStep
           quuxStep:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-quuxStep"
-            ResultPath: '$.quuz'
+            ResultPath: '$'
             End: true
 
 

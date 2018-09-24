@@ -19,23 +19,16 @@ const startProcess = async (processInput) => {
 
     console.log(`start process execution - stateMachineArn ${process.env.STEP_FN_ARN}`);
     let result = await stepFunctions.startExecution(params).promise();
-    console.log(`startProcess return ${result}`);
     return result;
 }
 
 const createCore = async (event, context, callback) => {
     console.log(`create called with context ${JSON.stringify(context)}`);
+    console.log(`input payload is ${JSON.stringify(event['body'])}`);
 
-    let inputPayload = event['body'];
-    if (inputPayload == undefined) {
-        inputPayload = '{}';
-    }
-
-    console.log(`input payload is ${JSON.stringify(inputPayload)}`);
-
-    let inputObj = JSON.parse(inputPayload);
-    let processData = {};
-    processData['processInput'] = inputObj;
+    let processData = {
+        processInput: event['body']
+    };
 
     try {
         await writeBodyObj(S3, context.txnId, processData);

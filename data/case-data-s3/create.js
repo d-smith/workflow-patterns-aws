@@ -4,6 +4,7 @@ const stepFunctions = new AWS.StepFunctions();
 
 
 const middy = require('middy');
+const { jsonBodyParser, validator, httpErrorHandler } = require('middy/middlewares')
 const txnid = require('./middleware/txnid');
 
 const writeBodyObj = require('./s3utils').writeBodyObj;
@@ -54,4 +55,22 @@ const createCore = async (event, context, callback) => {
     });
 };
 
-module.exports.create = middy(createCore).use(txnid());
+
+const inputSchema = {
+    type: 'object',
+    properties: {
+        body: {
+            type: 'object',
+            required: ['metavar'],
+            properties: {
+                metavar: { type: 'string', minLength: 1 }
+            }
+        }
+    }
+}
+
+module.exports.create = middy(createCore)
+    .use(jsonBodyParser())
+    .use(validator({ inputSchema }))
+    .use(txnid())
+    .use(httpErrorHandler());

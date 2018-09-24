@@ -27,7 +27,7 @@ provider:
 
 functions:
   create:
-    handler: casedata.create
+    handler: create.create
       
       
         
@@ -83,13 +83,13 @@ stepFunctions:
           barStep:
             Type: Task
             TimeoutSeconds: 30
-            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bazStep"
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-barStep"
             ResultPath: '$'
             Next: quuxStep
           bazStep:
             Type: Task
             TimeoutSeconds: 30
-            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-barStep"
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bazStep"
             ResultPath: '$'
             Next: quuxStep
           quuxStep:

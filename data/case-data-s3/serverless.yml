@@ -64,6 +64,13 @@ stepFunctions:
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
             ResultPath: '$'
             Next: choiceStep
+            Retry:
+              - ErrorEquals:
+                  - S3DataPreconditionError
+                IntervalSeconds: 1
+                MaxAttempts: 5
+                BackoffRate: 1.25
+
           choiceStep:
             Type: Choice
             Choices:
@@ -80,24 +87,52 @@ stepFunctions:
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-fooStep"
             ResultPath: '$'
             Next: quuxStep
+            Retry:
+              - ErrorEquals:
+                  - S3DataPreconditionError
+                IntervalSeconds: 1
+                MaxAttempts: 5
+                BackoffRate: 1.25
+
           barStep:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-barStep"
             ResultPath: '$'
             Next: quuxStep
+            Retry:
+              - ErrorEquals:
+                  - S3DataPreconditionError
+                IntervalSeconds: 1
+                MaxAttempts: 5
+                BackoffRate: 1.25
+
           bazStep:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bazStep"
             ResultPath: '$'
             Next: quuxStep
+            Retry:
+              - ErrorEquals:
+                  - S3DataPreconditionError
+                IntervalSeconds: 1
+                MaxAttempts: 5
+                BackoffRate: 1.25
+
           quuxStep:
             Type: Task
             TimeoutSeconds: 30
             Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-quuxStep"
             ResultPath: '$'
             End: true
+            Retry:
+              - ErrorEquals:
+                  - S3DataPreconditionError
+                IntervalSeconds: 1
+                MaxAttempts: 5
+                BackoffRate: 1.25
+
 
 
 plugins:

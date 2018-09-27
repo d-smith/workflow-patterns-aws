@@ -1,13 +1,10 @@
 const AWS = require('aws-sdk');
 const S3 = new AWS.S3();
 
-
+const chance = require('chance').Chance();
 
 const writeBodyObj = require('./s3utils').writeBodyObj;
 const readInputDataJSON = require('./s3utils').readInputDataJSON;
-
-
-
 
 module.exports.step1 = async (event, context, callback) => {
     let key = event['processData'];
@@ -27,10 +24,10 @@ module.exports.step1 = async (event, context, callback) => {
     callback(null, stateMachineData);
 };
 
-const doStep = async (key, stepName, stepOutput, callback) => {
+const doStep = async (key, stepName, stepOutput, dataPredicate, callback) => {
     console.log(`process data via key ${key}`);
 
-    let processData = await readInputDataJSON(S3, key, (x) => { return true; });
+    let processData = await readInputDataJSON(S3, key, dataPredicate);
     console.log(`input: ${JSON.stringify(processData)}`);
 
     console.log('write step output');
@@ -44,22 +41,31 @@ const doStep = async (key, stepName, stepOutput, callback) => {
     callback(null, stateMachineData);
 }
 
+const step1DataPresent = (x) => {
+    return chance.bool({likelihood: 35});
+}
+
 module.exports.fooStep = async (event, context, callback) => {
     console.log('fooStep');
-    await doStep(event['processData'], 'fooStep', 'foo', callback);
+    await doStep(event['processData'], 'fooStep', 'foo', step1DataPresent, callback);
 }
 
 module.exports.barStep = async (event, context, callback) => {
     console.log('barStep');
-    await doStep(event['processData'], 'barStep', 'bar', callback);
+    await doStep(event['processData'], 'barStep', 'bar', step1DataPresent, callback);
 };
 
 module.exports.bazStep = async (event, context, callback) => {
     console.log('bazStep');
-    await doStep(event['processData'], 'bazStep', 'baz', callback);
+    await doStep(event['processData'], 'bazStep', 'baz', step1DataPresent, callback);
 };
 
-module.exports.quuxStep = async (event, context, callback) => {
-    await doStep(event['processData'], 'quuxStep', 'quux', callback);
+const quuxDataPredicate = async (data) => {
+    return (data['step1'] != undefined && 
+        (data['fooStep'] != undefined || data['barStep'] || data['bazStep']));
+};
+
+module.exports.quuxStep = async (event, context,  callback) => {
+    await doStep(event['processData'], 'quuxStep', 'quux', quuxDataPredicate, callback);
 };
 

@@ -6,6 +6,9 @@ const chance = require('chance').Chance();
 const writeBodyObj = require('./s3utils').writeBodyObj;
 const readInputDataJSON = require('./s3utils').readInputDataJSON;
 
+const middy = require('middy');
+const s3data = require('./middleware/s3data');
+
 module.exports.step1 = async (event, context, callback) => {
     let key = event['processData'];
     console.log(`process data via key ${key}`);
@@ -50,10 +53,15 @@ module.exports.fooStep = async (event, context, callback) => {
     await doStep(event['processData'], 'fooStep', 'foo', step1DataPresent, callback);
 }
 
-module.exports.barStep = async (event, context, callback) => {
+const barStepCore = async (event, context, callback) => {
     console.log('barStep');
+    console.log(`case data: ${JSON.stringify(event.caseData)}`)
     await doStep(event['processData'], 'barStep', 'bar', step1DataPresent, callback);
 };
+
+module.exports.barStep 
+    = middy(barStepCore)
+        .use(s3data({inputPredicate:step1DataPresent}));
 
 module.exports.bazStep = async (event, context, callback) => {
     console.log('bazStep');

@@ -54,9 +54,22 @@ module.exports.fooStep = async (event, context, callback) => {
 }
 
 const barStepCore = async (event, context, callback) => {
+    //Case data via middleware
     console.log('barStep');
-    console.log(`case data: ${JSON.stringify(event.caseData)}`)
-    await doStep(event['processData'], 'barStep', 'bar', step1DataPresent, callback);
+    console.log(`case data: ${JSON.stringify(event.caseData)}`);
+
+    let caseData = event.caseData;
+    caseData['barStep'] = 'bar'; //Bar step output
+
+    //For now write data
+    let key = event['processData'];
+    console.log('write step output');
+    await writeBodyObj(S3, key, caseData);
+
+    //Put the step data and case data in callback context
+    callback(null, {caseData: caseData, processData:key });
+    
+    //await doStep(event['processData'], 'barStep', 'bar', step1DataPresent, callback);
 };
 
 module.exports.barStep 

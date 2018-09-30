@@ -6,66 +6,113 @@ const chance = require('chance').Chance();
 const writeBodyObj = require('./s3utils').writeBodyObj;
 const readInputDataJSON = require('./s3utils').readInputDataJSON;
 
-module.exports.step1 = async (event, context, callback) => {
-    let key = event['processData'];
-    console.log(`process data via key ${key}`);
+const middy = require('middy');
+const s3data = require('./middleware/s3data');
 
-    let processData = await readInputDataJSON(S3, key, (x) => { return true; });
-    console.log(`input: ${JSON.stringify(processData)}`);
+const step1Core = async (event, context, callback) => {
+    //Case data via middleware
+    console.log('step1');
 
-    //Add this steps data to the s3 object
-    processData['step1'] = 'Step 1 data';
-    await writeBodyObj(S3, key, processData);
+    //Add step output to case data.
+    let caseData = event.caseData;
+    caseData['step1'] = 'Step 1 output';
 
-    let stateMachineData = {};
-    stateMachineData['processData'] = key;
-    stateMachineData['metavar'] = processData.processInput.metavar;
-
-    callback(null, stateMachineData);
+    //Invoke callback with case data and state machine data
+    let stateMachineData = {
+        processData: event['processData'],
+        metavar: caseData.processInput.metavar
+    };
+    callback(null, { caseData, stateMachineData });
 };
 
-const doStep = async (key, stepName, stepOutput, dataPredicate, callback) => {
-    console.log(`process data via key ${key}`);
-
-    let processData = await readInputDataJSON(S3, key, dataPredicate);
-    console.log(`input: ${JSON.stringify(processData)}`);
-
-    console.log('write step output');
-    processData[stepName] = stepOutput;
-    await writeBodyObj(S3, key, processData);
-
-    let stateMachineData = {};
-    stateMachineData['processData'] = key;
-
-    console.log('callback with state machine data');
-    callback(null, stateMachineData);
-}
+module.exports.step1
+    = middy(step1Core)
+        .use(s3data({ readPredicate: (o) => true }));
 
 const step1DataPresent = (x) => {
-    return chance.bool({likelihood: 35});
-}
+    return chance.bool({ likelihood: 35 });
+};
 
-module.exports.fooStep = async (event, context, callback) => {
+const fooStepCore = async (event, context, callback) => {
+    //Case data via middleware
     console.log('fooStep');
-    await doStep(event['processData'], 'fooStep', 'foo', step1DataPresent, callback);
+
+    //Add step output to case data.
+    let caseData = event.caseData;
+    caseData['fooStep'] = 'foo'; //step output
+
+    //Invoke callback with case data and state machine data
+    let stateMachineData = {
+        processData: event['processData']
+    };
+    callback(null, { caseData, stateMachineData });
 }
 
-module.exports.barStep = async (event, context, callback) => {
+const barStepCore = async (event, context, callback) => {
+    //Case data via middleware
     console.log('barStep');
-    await doStep(event['processData'], 'barStep', 'bar', step1DataPresent, callback);
+
+    //Add step output to case data.
+    let caseData = event.caseData;
+    caseData['barStep'] = 'bar'; //step output
+
+    //Invoke callback with case data and state machine data
+    let stateMachineData = {
+        processData: event['processData']
+    };
+    callback(null, { caseData, stateMachineData });
 };
 
-module.exports.bazStep = async (event, context, callback) => {
+const bazStepCore = async (event, context, callback) => {
+    //Case data via middleware
     console.log('bazStep');
-    await doStep(event['processData'], 'bazStep', 'baz', step1DataPresent, callback);
+
+    //Add step output to case data.
+    let caseData = event.caseData;
+    caseData['bazStep'] = 'baz'; //step output
+
+    //Invoke callback with case data and state machine data
+    let stateMachineData = {
+        processData: event['processData']
+    };
+    callback(null, { caseData, stateMachineData });
 };
+
+module.exports.barStep
+    = middy(barStepCore)
+        .use(s3data({ inputPredicate: step1DataPresent }));
+
+module.exports.fooStep
+    = middy(fooStepCore)
+        .use(s3data({ inputPredicate: step1DataPresent }));
+
+module.exports.bazStep
+    = middy(bazStepCore)
+        .use(s3data({ inputPredicate: step1DataPresent }));
+
 
 const quuxDataPredicate = async (data) => {
-    return (data['step1'] != undefined && 
+    return (data['step1'] != undefined &&
         (data['fooStep'] != undefined || data['barStep'] || data['bazStep']));
 };
 
-module.exports.quuxStep = async (event, context,  callback) => {
-    await doStep(event['processData'], 'quuxStep', 'quux', quuxDataPredicate, callback);
+
+const quuxStepCore = async (event, context, callback) => {
+    //Case data via middleware
+    console.log('quuxStep');
+
+    //Add step output to case data.
+    let caseData = event.caseData;
+    caseData['quuxStep'] = 'quux'; //Bar step output
+
+    //Invoke callback with case data and state machine data
+    let stateMachineData = {
+        processData: event['processData']
+    };
+    callback(null, { caseData, stateMachineData });
 };
+
+module.exports.quuxStep
+    = middy(quuxStepCore)
+        .use(s3data({ inputPredicate: quuxDataPredicate }))
 

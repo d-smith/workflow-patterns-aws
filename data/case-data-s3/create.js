@@ -43,9 +43,12 @@ const createCore = async (event, context, callback) => {
 
     let result = await startProcess(JSON.stringify(processInput));
     console.log(`start process response is ${JSON.stringify(result)}`);
-    callback(null, {
-        statusCode: 200
-    });
+    
+    let responseBody = {
+        transactionId: context.txnId
+    };
+
+    callback(null, {statusCode: 200, body: JSON.stringify(responseBody)});
 };
 
 

@@ -28,15 +28,23 @@ provider:
 functions:
   create:
     handler: create.create
-      
-      
-        
-
     events:
     - http:
         path: create
         method: POST
         private: true
+    
+  procdata:
+    handler: pdata.retrieve
+    events:
+    - http:
+        method: Get
+        private: true
+        path: casedata/{txnid}
+        request:
+          parameters:
+            paths:
+              txnid: true
    
   step1:
     handler: casedata.step1

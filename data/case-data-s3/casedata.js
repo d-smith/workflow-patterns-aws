@@ -116,3 +116,4 @@ module.exports.quuxStep
     = middy(quuxStepCore)
         .use(s3data({ inputPredicate: quuxDataPredicate }))
 
+module.exports.step1Core = step1Core;

@@ -28,9 +28,9 @@ module.exports = ({readPredicate}) => {
                 
                   console.log('s3data before - read s3 data');
                   const S3 = new AWS.S3(); //Instantiate just in time to -- needed by mocking framework
-                  let processData = await s3utils.readInputDataJSON(S3, txnId, readPredicate);
+                  let caseData = await s3utils.readInputDataJSON(S3, txnId, readPredicate);
                   console.log('s3data before - set data as casedata property on event');
-                  handler.event.caseData = processData;
+                  handler.event.caseData = caseData;
                   
               };
           },

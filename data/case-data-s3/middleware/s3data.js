@@ -28,9 +28,9 @@ module.exports = ({readPredicate}) => {
                 
                   console.log('s3data before - read s3 data');
                   const S3 = new AWS.S3(); //Instantiate just in time to -- needed by mocking framework
-                  let processData = await s3utils.readInputDataJSON(S3, txnId, readPredicate);
+                  let caseData = await s3utils.readInputDataJSON(S3, txnId, readPredicate);
                   console.log('s3data before - set data as casedata property on event');
-                  handler.event.caseData = processData;
+                  handler.event.caseData = caseData;
                   
               };
           },
@@ -45,7 +45,6 @@ module.exports = ({readPredicate}) => {
                 if(caseData == undefined) {
                     console.log('s3data after - No caseData in response to write');
                 } else {
-                    console.log('s3data after - placeholder ... write case data');
                     //let key = handler.response.processData;
                     let key = stateMachineData.processData;
                     console.log(`write step output to s3 with key ${key}`);

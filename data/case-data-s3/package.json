@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha tests/test_cases --reporter spec"
   },
   "author": "",
   "license": "MIT",
@@ -13,6 +13,9 @@
     "middy": "^0.18.1"
   },
   "devDependencies": {
+    "aws-sdk-mock": "^4.2.0",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
     "serverless-pseudo-parameters": "^2.1.0",
     "serverless-step-functions": "^1.6.1"
   }

@@ -45,7 +45,6 @@ module.exports = ({readPredicate}) => {
                 if(caseData == undefined) {
                     console.log('s3data after - No caseData in response to write');
                 } else {
-                    console.log('s3data after - placeholder ... write case data');
                     //let key = handler.response.processData;
                     let key = stateMachineData.processData;
                     console.log(`write step output to s3 with key ${key}`);

@@ -11,6 +11,7 @@ class S3DataPreconditionError extends Error {
 
 
 const readInputDataJSON = async (S3, key, predicate) => {
+    //TODO - move BUCKET_NAME from env to constructor params
     let params = {
         Bucket: process.env.BUCKET_NAME,
         Key: key

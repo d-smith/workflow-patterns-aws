@@ -13,6 +13,7 @@
     "middy": "^0.18.1"
   },
   "devDependencies": {
+    "aws-sdk-mock": "^4.2.0",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "serverless-pseudo-parameters": "^2.1.0",

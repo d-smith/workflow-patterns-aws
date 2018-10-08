@@ -1,41 +1,28 @@
 const expect = require('chai').expect;
-const step1Core = require('../../casedata').step1Core;
 
+var AWS = require('aws-sdk-mock');
 
+const step1 = require('../../casedata').step1;
 
-var mochaAsync = (fn) => {
-    return async (done) => {
-        try {
-            await fn();
-            done();
-        } catch (err) {
-            done(err);
-        }
-    };
-};
 
 describe(`when we invoke step1`, async () => {
+    let event = {
+        processData: 'txn-xxx'
+    };
+
+    AWS.mock("S3", "getObject", Promise.resolve({ Body: Buffer.from('{"processInput":{"metavar":"foo"}}') }));
+    AWS.mock("S3", "putObject", "stuff");
+
     it(`writes the metavar input as a state machine variable`, async () => {
-        let event = {
-            caseData: {
-                processInput: {
-                    metavar: 'foo'
-                }
-            },
-            processData: 'txn-xxx'
-        };
-        
-        let context = {};
+        var cbErr;
+        process.env.BUCKET_NAME = 'step1bucket';
+        await step1(event, {}, (err,data)=>{
+            console.log('callback err', err); 
+            cbErr = Promise.resolve(err)}
+        );
 
-        var callbackErr, callbackData;
-        const callback = (err, data) => {
-            callbackErr = err;
-            callbackData = data;
-        }
-
-        await step1Core(event, context, callback);
-        
-        expect(callbackErr).to.be.null;
-        expect(callbackData.stateMachineData.metavar).to.equal('foo');
-    })
-})
+        cbErr.then((e) => {
+            console.log(e);
+        })
+    });
+});

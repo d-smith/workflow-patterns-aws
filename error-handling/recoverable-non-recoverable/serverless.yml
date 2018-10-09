@@ -22,7 +22,7 @@ functions:
 stepFunctions:
   stateMachines:
     Process1:
-      name: p1-seq-${opt:stage}
+      name: recov-nonrecov-${opt:stage}
       events:
         - http:
             path: create

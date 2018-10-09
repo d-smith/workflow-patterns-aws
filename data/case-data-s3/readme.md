@@ -9,6 +9,14 @@ A couple things to note about Step Functions:
 
 Storing the data in an s3 object avoids the size limitation and allows the use of KMS SSE. One potential downside is there's a chance of reading stale data between steps -- this can be mitigated by including a guard predicate and retry logic for handling inconsistent reads.
 
+Other upsides to keeping state data in s3:
+
+* Full control over encryption of data, e.g. KMS SSE CMK.
+* Plug into full s3 ecosystem - trigger processing via s3 events, analytics via glue/athena/redshit/emr etc etc
+* Leverage multi-region replication
+* Build process repair and restart capabilities
+* Plug into s3 object lifecycle management (move to glacier, retention and deletion policies, etc)
+
 ## notes
 
 This uses middy middlewares - some provided by the framework, and one written to

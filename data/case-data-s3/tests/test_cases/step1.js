@@ -35,6 +35,11 @@ describe(`when we invoke step1`,  () => {
 
         AWS.mock("S3", "putObject", putSpy);
 
+
+        // Note that currently middy assumes that a callback function is passed as
+        // an argument, which apparently lambda always does - see
+        // https://github.com/middyjs/middy/issues/198
+
         step1(event, {}, (err,data)=>{
             console.log('callback err', err); 
             try {

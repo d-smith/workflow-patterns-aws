@@ -26,16 +26,10 @@ describe(`when we invoke step1Core`, async () => {
         };
         
         let context = {};
-
-        var callbackErr, callbackData;
-        const callback = (err, data) => {
-            callbackErr = err;
-            callbackData = data;
-        }
-
-        await step1Core(event, context, callback);
-        
-        expect(callbackErr).to.be.null;
-        expect(callbackData.stateMachineData.metavar).to.equal('foo');
+  
+        console.log('call step1Core');
+        let result = await step1Core(event, context);
+        console.log('step1core done', result);        
+        expect(result.stateMachineData.metavar).to.equal('foo');
     })
 })

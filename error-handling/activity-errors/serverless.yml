@@ -1,0 +1,54 @@
+service: acterr
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - acterr-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: unlock-${opt:stage}
+      events:
+        - http:
+            path: create
+            method: POST
+            private: true
+      definition:
+
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Pass
+            Next: manual
+            ResultPath: '$.step1'
+
+          manual:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:manual-${self:service}-${opt:stage}
+            Next: step-2
+            ResultPath: '$.manual'
+            Retry:
+              - ErrorEquals:
+                  - Reoffer.Unlock
+                MaxAttempts: 3
+                BackoffRate: 1.0
+                
+          step-2:
+            Type: Pass
+            End: true
+            ResultPath: '$.step2'
+  activities:
+    - manual-${self:service}-${opt:stage}
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

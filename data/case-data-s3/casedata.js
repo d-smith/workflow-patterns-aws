@@ -9,7 +9,7 @@ const readInputDataJSON = require('./s3utils').readInputDataJSON;
 const middy = require('middy');
 const s3data = require('./middleware/s3data');
 
-const step1Core = async (event, context, callback) => {
+const step1Core = async (event, context) => {
     //Case data via middleware
     console.log('step1');
 
@@ -17,12 +17,12 @@ const step1Core = async (event, context, callback) => {
     let caseData = event.caseData;
     caseData['step1'] = 'Step 1 output';
 
-    //Invoke callback with case data and state machine data
+    //Return case data and state machine data
     let stateMachineData = {
         processData: event['processData'],
         metavar: caseData.processInput.metavar
     };
-    callback(null, { caseData, stateMachineData });
+    return { caseData, stateMachineData };
 };
 
 module.exports.step1
@@ -33,7 +33,7 @@ const step1DataPresent = (x) => {
     return chance.bool({ likelihood: 35 });
 };
 
-const fooStepCore = async (event, context, callback) => {
+const fooStepCore = async (event, context) => {
     //Case data via middleware
     console.log('fooStep');
 
@@ -41,14 +41,14 @@ const fooStepCore = async (event, context, callback) => {
     let caseData = event.caseData;
     caseData['fooStep'] = 'foo'; //step output
 
-    //Invoke callback with case data and state machine data
+    //Return case data and state machine data
     let stateMachineData = {
         processData: event['processData']
     };
-    callback(null, { caseData, stateMachineData });
+    return { caseData, stateMachineData };
 }
 
-const barStepCore = async (event, context, callback) => {
+const barStepCore = async (event, context) => {
     //Case data via middleware
     console.log('barStep');
 
@@ -56,14 +56,14 @@ const barStepCore = async (event, context, callback) => {
     let caseData = event.caseData;
     caseData['barStep'] = 'bar'; //step output
 
-    //Invoke callback with case data and state machine data
+    //Return case data and state machine data
     let stateMachineData = {
         processData: event['processData']
     };
-    callback(null, { caseData, stateMachineData });
+    return { caseData, stateMachineData };
 };
 
-const bazStepCore = async (event, context, callback) => {
+const bazStepCore = async (event, context) => {
     //Case data via middleware
     console.log('bazStep');
 
@@ -71,11 +71,11 @@ const bazStepCore = async (event, context, callback) => {
     let caseData = event.caseData;
     caseData['bazStep'] = 'baz'; //step output
 
-    //Invoke callback with case data and state machine data
+    //Return case data and state machine data
     let stateMachineData = {
         processData: event['processData']
     };
-    callback(null, { caseData, stateMachineData });
+    return { caseData, stateMachineData };
 };
 
 module.exports.barStep
@@ -97,7 +97,7 @@ const quuxDataPredicate = async (data) => {
 };
 
 
-const quuxStepCore = async (event, context, callback) => {
+const quuxStepCore = async (event, context) => {
     //Case data via middleware
     console.log('quuxStep');
 
@@ -105,11 +105,11 @@ const quuxStepCore = async (event, context, callback) => {
     let caseData = event.caseData;
     caseData['quuxStep'] = 'quux'; //Bar step output
 
-    //Invoke callback with case data and state machine data
+    //Return with case data and state machine data
     let stateMachineData = {
         processData: event['processData']
     };
-    callback(null, { caseData, stateMachineData });
+    return { caseData, stateMachineData };
 };
 
 module.exports.quuxStep

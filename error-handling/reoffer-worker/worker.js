@@ -72,13 +72,14 @@ const doAction = async (ctx) => {
         ).promise();
     } else {
         console.log('send task failure');
-        await stepfunctions.sendTaskFailure(
+        let failResponse = await stepfunctions.sendTaskFailure(
             {
                 taskToken: taskToken,
                 cause: 'manual failed',
                 error: 'Reoffer.Fail'
             }
         ).promise();
+        console.log('failure sent', failResponse);
     }
 
 }

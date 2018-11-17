@@ -1,0 +1,122 @@
+service: ddbcase
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  runtime: nodejs8.10
+  apiKeys:
+    - ddbcase-${opt:stage, self:provider.stage}
+  usagePlan:
+    throttle:
+      burstLimit: 10
+      rateLimit: 5
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    STEP_FN_ARN: 'arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}'
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - states:StartExecution
+      Resource: 'arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:${self:service}-${self:provider.stage}'
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+
+functions:
+  create:
+    handler: create.create
+    events:
+    - http:
+        path: create
+        method: POST
+        private: true
+    
+  procdata:
+    handler: pdata.retrieve
+    events:
+    - http:
+        method: Get
+        private: true
+        path: casedata/{txnid}
+        request:
+          parameters:
+            paths:
+              txnid: true
+   
+  step1:
+    handler: casedata.step1
+  fooStep:
+    handler: casedata.fooStep
+  barStep:
+    handler: casedata.barStep
+  bazStep:
+    handler: casedata.bazStep
+  quuxStep:
+    handler: casedata.quuxStep
+
+
+
+stepFunctions:
+  stateMachines:
+    Process1:
+      name: ddbcase-${opt:stage}
+      definition:
+        StartAt: step-1
+        States:
+          step-1:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-step1"
+            ResultPath: '$'
+            Next: choiceStep
+
+          choiceStep:
+            Type: Choice
+            Choices:
+              - Variable: '$.metavar'
+                StringEquals: 'foo'
+                Next: fooStep
+              - Variable: '$.metavar'
+                StringEquals: 'bar'
+                Next: barStep
+            Default: bazStep 
+          fooStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-fooStep"
+            ResultPath: '$'
+            Next: quuxStep
+
+          barStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-barStep"
+            ResultPath: '$'
+            Next: quuxStep
+
+          bazStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-bazStep"
+            ResultPath: '$'
+            Next: quuxStep
+
+          quuxStep:
+            Type: Task
+            TimeoutSeconds: 30
+            Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-quuxStep"
+            ResultPath: '$'
+            End: true
+
+
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters

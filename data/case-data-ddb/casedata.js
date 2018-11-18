@@ -7,5 +7,5 @@ const stubbed = async (event, context) => {
 module.exports.step1 = stubbed;
 module.exports.fooStep = stubbed;
 module.exports.barStep = stubbed;
-module.exports.step1 = bazStep;
-module.exports.step1 = quuxStep;
+module.exports.bazStep = stubbed;
+module.exports.quuxStep = stubbed;

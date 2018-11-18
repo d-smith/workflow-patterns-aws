@@ -20,6 +20,24 @@ const startProcess = async (processInput) => {
     return result;
 }
 
+const writeInputData = async (txnid, inputData) => {
+    console.log(`writeInputData call with txn id ${txnid} and input ${inputData}`);
+    
+    const docClient = new AWS.DynamoDB.DocumentClient();
+    let params = {
+        TableName: process.env.DYNAMODB_TABLE,
+        Item: {
+            TxnId: txnid,
+            ProcessInput: inputData
+        }
+    };
+
+    console.log('put item');
+    let result = await docClient.put(params).promise();
+    return result;
+    
+};
+
 const createCore = async (event, context) => {
     console.log(`create called with context ${JSON.stringify(context)}`);
     console.log(`input payload is ${JSON.stringify(event['body'])}`);
@@ -28,6 +46,10 @@ const createCore = async (event, context) => {
 
     let processInput = {};
     processInput['processData'] = context.txnId;
+
+    //TODO - proper error handling...
+    let putResult = await writeInputData(context.txnId, event['body']);
+    console.log(`putResult response is ${putResult}`);
 
     let result = await startProcess(JSON.stringify(processInput));
     console.log(`start process response is ${JSON.stringify(result)}`);

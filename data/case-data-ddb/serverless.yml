@@ -115,7 +115,24 @@ stepFunctions:
             ResultPath: '$'
             End: true
 
-
+resources:
+  Resources:
+    TodosDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: TxnId
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: TxnId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
 
 plugins:
   - serverless-step-functions

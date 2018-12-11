@@ -19,13 +19,13 @@ Resources:
               Service: lambda.amazonaws.com
             Action: "sts:AssumeRole"
 
-  MyLambdaFunction:
-      Type: AWS::Serverless::Function
-      Properties:
-        Handler: index.handler
-        CodeUri: src/
-        Role: !GetAtt [ LambdaExecutionRole, Arn ]
 
+MyLambdaFunction:
+  Type: AWS::Serverless::Function
+  Properties:
+    Handler: index.handler
+    CodeUri: src/
+    Role: !GetAtt [ LambdaExecutionRole, Arn ]
 
 
   StatesExecutionRole:

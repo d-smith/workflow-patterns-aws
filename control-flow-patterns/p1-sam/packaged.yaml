@@ -5,15 +5,41 @@ Description: 'Step function hello world with SAM!
 Resources:
   HelloWorldStateMachine:
     Properties:
-      DefinitionString: "{\n  \"Comment\":\"Hellow world state machine\",\n  \"StartAt\"\
-        :\"HelloWorld\",\n  \"States\": {\n    \"HelloWorld\": {\n      \"Type\":\"\
-        Pass\",\n      \"End\":true\n    }\n  }\n}\n"
+      DefinitionString:
+        Fn::Sub: "{\n  \"Comment\":\"Hellow world state machine\",\n  \"StartAt\"\
+          :\"HelloWorld\",\n  \"States\": {\n    \"HelloWorld\": {\n      \"Type\"\
+          :\"Task\",\n      \"Resource\":\"${MyLambdaFunction.Arn}\",\n      \"End\"\
+          :true\n    }\n  }\n}\n"
       RoleArn:
         Fn::GetAtt:
         - StatesExecutionRole
         - Arn
     Type: AWS::StepFunctions::StateMachine
+  LambdaExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+    Type: AWS::IAM::Role
+  MyLambdaFunction:
+    Properties:
+      Code:
+        ZipFile: "exports.handler = (event, context, callback) => {\n  callback(null,\
+          \ \"Hello\");\n};\n"
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+      Runtime: nodejs8.10
+    Type: AWS::Lambda::Function
   StatesExecutionRole:
+    DependsOn:
+    - MyLambdaFunction
     Properties:
       AssumeRolePolicyDocument:
         Statement:

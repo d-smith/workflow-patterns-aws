@@ -19,19 +19,28 @@ Resources:
               Service: lambda.amazonaws.com
             Action: "sts:AssumeRole"
 
-  MyLambdaFunction:
+  Step1:
       Type: AWS::Serverless::Function
       Properties:
-        Handler: index.handler
+        Handler: p1.step1
         CodeUri: src/
         Role: !GetAtt [ LambdaExecutionRole, Arn ]
+  
+  Step2:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: p1.step2
+        CodeUri: src/
+        Role: !GetAtt [ LambdaExecutionRole, Arn ]
+
 
 
 
   StatesExecutionRole:
     Type: AWS::IAM::Role
     DependsOn:
-      - MyLambdaFunction
+      - Step1
+      - Step2
     Properties:
       AssumeRolePolicyDocument: 
         Version: '2012-10-17'
@@ -50,20 +59,26 @@ Resources:
               - Effect: Allow
                 Action:
                   - "lambda:InvokeFunction"
-                Resource: !GetAtt [ MyLambdaFunction, Arn ]
-                Resource: '*'
+                Resource: 
+                  - !GetAtt [ Step1, Arn ]
+                  - !GetAtt [ Step2, Arn ]
 
   HelloWorldStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       DefinitionString: !Sub |
         {
-          "Comment":"Hellow world state machine",
-          "StartAt":"HelloWorld",
+          "Comment":"Hello world state machine",
+          "StartAt":"step-1",
           "States": {
-            "HelloWorld": {
+            "step-1": {
               "Type":"Task",
-              "Resource":"${MyLambdaFunction.Arn}",
+              "Resource":"${Step1.Arn}",
+              "Next":"step-2"
+            },
+            "step-2": {
+              "Type":"Task",
+              "Resource":"${Step2.Arn}",
               "End":true
             }
           }

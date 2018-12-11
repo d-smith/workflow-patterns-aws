@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: >
+  Step function hello world with SAM!
+
+Globals:
+  Function:
+    Runtime: "nodejs8.10"
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+
+  Step1:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: p1.step1
+        CodeUri: src/
+        Role: !GetAtt [ LambdaExecutionRole, Arn ]
+  
+  Step2:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: p1.step2
+        CodeUri: src/
+        Role: !GetAtt [ LambdaExecutionRole, Arn ]
+
+
+
+
+  StatesExecutionRole:
+    Type: AWS::IAM::Role
+    DependsOn:
+      - Step1
+      - Step2
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: 
+                  - !GetAtt [ Step1, Arn ]
+                  - !GetAtt [ Step2, Arn ]
+
+  HelloWorldStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString: !Sub |
+        {
+          "Comment":"Hello world state machine",
+          "StartAt":"step-1",
+          "States": {
+            "step-1": {
+              "Type":"Task",
+              "Resource":"${Step1.Arn}",
+              "Next":"step-2"
+            },
+            "step-2": {
+              "Type":"Task",
+              "Resource":"${Step2.Arn}",
+              "End":true
+            }
+          }
+        }
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]

@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Step function hello world with SAM!
+
+  '
+Globals:
+  Function:
+    Runtime: nodejs8.10
+Resources:
+  HelloWorldStateMachine:
+    Properties:
+      DefinitionString:
+        Fn::Sub: "{\n  \"Comment\":\"Hello world state machine\",\n  \"StartAt\":\"\
+          step-1\",\n  \"States\": {\n    \"step-1\": {\n      \"Type\":\"Task\",\n\
+          \      \"Resource\":\"${Step1.Arn}\",\n      \"Next\":\"step-2\"\n    },\n\
+          \    \"step-2\": {\n      \"Type\":\"Task\",\n      \"Resource\":\"${Step2.Arn}\"\
+          ,\n      \"End\":true\n    }\n  }\n}\n"
+      RoleArn:
+        Fn::GetAtt:
+        - StatesExecutionRole
+        - Arn
+    Type: AWS::StepFunctions::StateMachine
+  LambdaExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+        Version: '2012-10-17'
+    Type: AWS::IAM::Role
+  StatesExecutionRole:
+    DependsOn:
+    - Step1
+    - Step2
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - Fn::Sub: states.${AWS::Region}.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action:
+            - lambda:InvokeFunction
+            Effect: Allow
+            Resource:
+            - Fn::GetAtt:
+              - Step1
+              - Arn
+            - Fn::GetAtt:
+              - Step2
+              - Arn
+          Version: '2012-10-17'
+        PolicyName: StatesExecutionPolicy
+    Type: AWS::IAM::Role
+  Step1:
+    Properties:
+      CodeUri: s3://sampack-97068/2d57cf0089515dd14abaaf2a1fb323a4
+      Handler: p1.step1
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+    Type: AWS::Serverless::Function
+  Step2:
+    Properties:
+      CodeUri: s3://sampack-97068/2d57cf0089515dd14abaaf2a1fb323a4
+      Handler: p1.step2
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

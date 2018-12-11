@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: >
+  Step function hello world with SAM!
+
+Globals:
+  Function:
+    Runtime: "nodejs8.10"
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+
+
+MyLambdaFunction:
+  Type: AWS::Serverless::Function
+  Properties:
+    Handler: index.handler
+    CodeUri: src/
+    Role: !GetAtt [ LambdaExecutionRole, Arn ]
+
+
+  StatesExecutionRole:
+    Type: AWS::IAM::Role
+    DependsOn:
+      - MyLambdaFunction
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: !GetAtt [ MyLambdaFunction, Arn ]
+                Resource: '*'
+
+  HelloWorldStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString: !Sub |
+        {
+          "Comment":"Hellow world state machine",
+          "StartAt":"HelloWorld",
+          "States": {
+            "HelloWorld": {
+              "Type":"Task",
+              "Resource":"${MyLambdaFunction.Arn}",
+              "End":true
+            }
+          }
+        }
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]

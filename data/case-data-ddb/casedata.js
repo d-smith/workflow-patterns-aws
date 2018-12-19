@@ -12,7 +12,7 @@ module.exports.quuxStep = stubbed;
 
 const step1Core = async (event, context) => {
     console.log(`step 1 event: ${JSON.stringify(event)}`);
-    
+
     //Add step output to case data.
     let caseData = event.caseData || {};
     caseData['step1'] = 'Step 1 output';
@@ -20,7 +20,7 @@ const step1Core = async (event, context) => {
     //Return case data and state machine data
     let stateMachineData = {
         processData: event['processData'],
-        //metavar: caseData.processInput.metavar
+        metavar: caseData.processInput.metavar
     };
 
     return { caseData, stateMachineData };

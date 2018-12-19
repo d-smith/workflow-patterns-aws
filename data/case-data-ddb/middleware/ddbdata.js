@@ -63,7 +63,7 @@ module.exports = ({readPredicate}) => {
                         TableName: process.env.DYNAMODB_TABLE,
                         Item: {
                             TxnId: key,
-                            ProcessDate: caseData
+                            processDate: caseData
                         }
                     };
 

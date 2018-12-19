@@ -28,7 +28,7 @@ const writeInputData = async (txnid, inputData) => {
         TableName: process.env.DYNAMODB_TABLE,
         Item: {
             TxnId: txnid,
-            ProcessInput: inputData
+            processInput: inputData
         }
     };
 

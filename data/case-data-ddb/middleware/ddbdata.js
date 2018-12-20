@@ -36,7 +36,7 @@ module.exports = ({readPredicate}) => {
 
                   let rawData = await docClient.get(params).promise();
                   console.log(`raw data is ${JSON.stringify(rawData)}`);
-                  itemData = rawData['Item'];
+                  let itemData = rawData['Item'];
                   delete itemData.TxnId
                   console.log('ddbdata before - set data as casedata property on event');
                   handler.event.caseData = itemData;
@@ -56,15 +56,18 @@ module.exports = ({readPredicate}) => {
                 } else {
                     //let key = handler.response.processData;
                     let key = stateMachineData.processData;
-                    console.log(`write step output to ddbdata with key ${key}`);
+                    console.log(`write step output to ddbdata with key ${key} and caseData ${JSON.stringify(caseData)}`);
+
+                    let item = {};
+                    item['TxnId'] = key;
+                    Object.keys(caseData).forEach((x) => {
+                        item[x] = caseData[x];
+                    });
 
                     const docClient = new AWS.DynamoDB.DocumentClient();
                     let params = {
                         TableName: process.env.DYNAMODB_TABLE,
-                        Item: {
-                            TxnId: key,
-                            processDate: caseData
-                        }
+                        Item: item
                     };
 
                     let response = await docClient.put(params).promise();

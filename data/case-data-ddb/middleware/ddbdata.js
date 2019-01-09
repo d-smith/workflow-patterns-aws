@@ -31,7 +31,8 @@ module.exports = ({readPredicate}) => {
                     TableName: process.env.DYNAMODB_TABLE,
                     Key: {
                         "TxnId": txnId
-                    }
+                    }, 
+                    ConsistentRead:true
                   };
 
                   let rawData = await docClient.get(params).promise();

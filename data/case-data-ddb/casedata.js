@@ -1,10 +1,6 @@
 const middy = require('middy');
 const ddbdata = require('./middleware/ddbdata');
 
-const stubbed = async (event, context) => {
-    return 'all work and no play makes Jack a dull boy';
-}
-
 const makeNamedStep = (name) => {
     return async (event, context) => {
         //Case data via middleware

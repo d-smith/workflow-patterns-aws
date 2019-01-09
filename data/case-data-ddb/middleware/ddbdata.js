@@ -4,7 +4,7 @@ const middy = require('middy');
 module.exports = () => {
     
 
-      return ({
+      return {
           before: async (handler, next) => {
               if(handler.event) {
                   console.log('do ddbdata before stuff');
@@ -61,10 +61,7 @@ module.exports = () => {
                     };
 
                     let response = await docClient.put(params).promise();
-                    console.log(`put response: ${JSON.stringify(response)}`);
-                    //const S3 = new AWS.S3(); //Instantiate just in time to -- needed by mocking framework
-                    //await s3utils.writeBodyObj(S3, key, caseData);
-                    
+                   
                     //Remove case data from response as we keep it in s3 not with the step functions instance
                     delete handler.response.caseData;
 
@@ -78,5 +75,5 @@ module.exports = () => {
             };
           }
 
-      });
+      };
 }

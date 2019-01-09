@@ -36,20 +36,20 @@ const step1Core = async (event, context) => {
 
 module.exports.step1
     = middy(step1Core)
-        .use(ddbdata({ readPredicate: (o) => true }));
+        .use(ddbdata());
 
 module.exports.fooStep
     = middy(makeNamedStep('foo'))
-        .use(ddbdata({ readPredicate: (o) => true }));
+        .use(ddbdata());
 
 module.exports.barStep
     = middy(makeNamedStep('bar'))
-        .use(ddbdata({ readPredicate: (o) => true }));
+        .use(ddbdata());
 
 module.exports.bazStep
     = middy(makeNamedStep('baz'))
-        .use(ddbdata({ readPredicate: (o) => true }));
+        .use(ddbdata());
 
 module.exports.quuxStep
     = middy(makeNamedStep('quux'))
-        .use(ddbdata({ readPredicate: (o) => true }));
+        .use(ddbdata());

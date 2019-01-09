@@ -1,12 +1,7 @@
 const AWS = require('aws-sdk');
-
-
 const middy = require('middy');
 
-
-const defaultPredicate = (o) => true;
-
-module.exports = ({readPredicate}) => {
+module.exports = () => {
     
 
       return ({
@@ -19,13 +14,7 @@ module.exports = ({readPredicate}) => {
                       return;
                   }
 
-                  console.log(`ddbdata before - read case data for txn ${txnId}`);
-                  if(!readPredicate) {
-                      console.log('No read predicate specified');
-                      readPredicate = defaultPredicate;
-                  }
-                
-                  console.log('ddbdata before - read ddb data');
+                  console.log(`ddbdata before - read case data for txn ${txnId}`);                
                   const docClient = new AWS.DynamoDB.DocumentClient();
                   let params = {
                     TableName: process.env.DYNAMODB_TABLE,
